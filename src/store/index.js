@@ -34,6 +34,7 @@ const state = {
     label: '',//String,可选,边标签
     info: '',//String,可选,线段详细信息
   },],
+  nodeInfoDrawerVisible: false,
 };
 //2.创建对象
 const store = new Vuex.Store({

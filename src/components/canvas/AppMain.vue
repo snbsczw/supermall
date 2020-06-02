@@ -8,7 +8,9 @@
       <nodeContextMenu ></nodeContextMenu>
       <canvasContextMenu @canvas_events="canvasEvents"></canvasContextMenu>
       <edgeContextMenu></edgeContextMenu>
+
     </el-main>
+    <NodeInfoDrawer :nodeInfo="form" @setnode="setNode(arguments)"></NodeInfoDrawer>
     <!--    添加节点表单-->
     <el-dialog title="添加节点" :visible.sync="dialogForm1Visible">
       <AddNodeForm @addnode="addNode($event)"></AddNodeForm>
@@ -27,6 +29,7 @@
   import edgeContextMenu from "../contextMenu/EdgeContextMenu";
   import AddNodeForm from "@/components/form/AddNodeForm";
   import AddEdgeForm from "@/components/form/AddEdgeForm";
+  import NodeInfoDrawer from "@/components/drawer/NodeInfoDrawer";
   export default {
     name: "AppMain",
     components: {
@@ -35,15 +38,17 @@
       edgeContextMenu,
       AddNodeForm,
       AddEdgeForm,
+      NodeInfoDrawer,
     },
     data(){
       return{
+        nodeInfoDrawerVisible: false,
         dialogForm1Visible: false,
         dialogForm2Visible: false,
         form: {
           id:'',
-          x:'',
-          y:'',
+          x:Number,
+          y:Number,
           label:'',
           size:'',
           color:'',
@@ -53,8 +58,8 @@
           target: '',
         },
         coordinate: {
-          x:'',
-          y:'',
+          x:Number,
+          y:Number,
         },
       }
     },
@@ -196,14 +201,30 @@
           this.visibleCard('edgeBoxCard',x,y);
         });
         //单击左键隐藏所有卡片
-        _t.graph.on('click', e=> {
+        _t.graph.on('click', e => {
            this.hiddenContextmenu('canvasBoxCard');
            this.hiddenContextmenu('nodeBoxCard');
            this.hiddenContextmenu('edgeBoxCard');
         });
+
+
+        _t.graph.on('node:click', e => {
+          // this.$store.commit('setNodeInfoDrawerVis',true);
+          this.$store.state.nodes.forEach(cn => {
+            if(cn.id === e.item.getModel().id){
+              this.form.id = cn.id;
+              this.form.x = cn.x;
+              this.form.y = cn.y;
+              this.form.size = cn.size;
+              this.form.color = cn.style.fill;
+              this.form.info = cn.info;
+              this.form.label = cn.label;
+              this.$store.commit('setNodeInfoDrawerVis',true);
+            }
+          })
+        });
         _t.graph.data(initData);
         _t.graph.render();
-
 
 
       },
@@ -284,6 +305,42 @@
       getCoordinate(x,y){
         this.coordinate.x = x;
         this.coordinate.y = y;
+      },
+      setNode(arg){
+        if(arg[1] === 'delNode'){
+          this.delNode(arg[0]);
+        }else if(arg[1] === 'updateNode'){
+          this.updateNode(arg[0]);
+        }
+      },
+      updateNode(ruleForm){
+        // console.log(typeof ruleForm.x);
+        this.$store.state.nodes.forEach(cn => {
+          if(ruleForm.id === cn.id){
+            cn.x = ruleForm.x;
+            // console.log(typeof cn.x);
+            cn.y = ruleForm.y;
+            cn.label = ruleForm.label;
+            cn.size = ruleForm.size;
+            cn.info = ruleForm.info;
+            cn.style.fill = ruleForm.color;
+            // this.graph.updateItem(
+            const item = this.graph.findById(cn.id);
+            item.update(cn);
+            // console.log(cn);
+
+
+          }
+        })
+      },
+      delNode(id){
+        for(let i = 0; i < this.$store.state.nodes.length; i++){
+          if(id ===  this.$store.state.nodes[i].id){
+            this.$store.state.nodes.splice(i,1);
+            this.graph.remove(this.graph.findById(id));
+            break;
+          }
+        }
       }
 
   },
