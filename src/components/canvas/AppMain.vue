@@ -1,24 +1,28 @@
 <template>
-  <el-container>
+  <el-container class="el-container">
     <el-header class="el-header">
-      <el-button @click="ceshi">测试按钮</el-button>
-      <el-button @click="ceshi2">测试按钮2</el-button>
+        <ul class="tab">
+          <li><i class="el-icon-edit"></i></li>
+          <li><i class="el-icon-edit"></i></li>
+          <li><i class="el-icon-edit"></i></li>
+          <li><i class="el-icon-edit"></i></li>
+          <li><i class="el-icon-edit"></i></li>
+          <li><i class="el-icon-edit"></i></li>
+        </ul>
     </el-header>
     <el-main id="mountNode" class="el-main">
-      <nodeContextMenu ></nodeContextMenu>
-      <canvasContextMenu @canvas_events="canvasEvents"></canvasContextMenu>
+      <nodeContextMenu></nodeContextMenu>
+      <canvasContextMenu @addnode="addNodeForm" @addedge="addEdgeForm"></canvasContextMenu>
       <edgeContextMenu></edgeContextMenu>
-
     </el-main>
-    <NodeInfoDrawer :nodeInfo="form" @setnode="setNode(arguments)"></NodeInfoDrawer>
+    <!--    修改 删除 查看节点信息抽屉-->
+    <NodeInfoDrawer :nodeInfo="nodeForm" @updatenode="updateNode" @delnode="delNode"></NodeInfoDrawer>
+    <EdgeInfoDrawer :edgeInfo="edgeForm" @updateedge="updateEdge" @deledge="delEdge"></EdgeInfoDrawer>
     <!--    添加节点表单-->
-    <el-dialog title="添加节点" :visible.sync="dialogForm1Visible">
-      <AddNodeForm @addnode="addNode($event)"></AddNodeForm>
-    </el-dialog>
+    <AddNodeForm :isVisible="dialogForm1Visible" @addnode="addNode($event)" @cancel="cancelNodeForm"></AddNodeForm>
     <!--    添加线段表单-->
-    <el-dialog title="添加线段" :visible.sync="dialogForm2Visible">
-      <AddEdgeForm @addedge="addEdge($event)"></AddEdgeForm>
-    </el-dialog>
+    <AddEdgeForm :isVisible="dialogForm2Visible" @addedge="addEdge($event)" @cancel="cancelEdgeForm"></AddEdgeForm>
+
   </el-container>
 </template>
 
@@ -30,6 +34,7 @@
   import AddNodeForm from "@/components/form/AddNodeForm";
   import AddEdgeForm from "@/components/form/AddEdgeForm";
   import NodeInfoDrawer from "@/components/drawer/NodeInfoDrawer";
+  import EdgeInfoDrawer from "@/components/drawer/EdgeInfoDrawer";
   export default {
     name: "AppMain",
     components: {
@@ -39,13 +44,14 @@
       AddNodeForm,
       AddEdgeForm,
       NodeInfoDrawer,
+      EdgeInfoDrawer,
     },
     data(){
       return{
         nodeInfoDrawerVisible: false,
         dialogForm1Visible: false,
         dialogForm2Visible: false,
-        form: {
+        nodeForm: {
           id:'',
           x:Number,
           y:Number,
@@ -53,9 +59,15 @@
           size:'',
           color:'',
           info:'',
-          edgeId: '',
+          isVisible: false,
+        },
+        edgeForm: {
+          id: '',
           source:'',
           target: '',
+          info:'',
+          label:'',
+          isVisible: false,
         },
         coordinate: {
           x:Number,
@@ -95,7 +107,7 @@
           layout: 'random',
           modes: {
             //允许拖拽画布，放缩画布，拖拽节点
-            default: ['drag-canvas', 'zoom-canvas', 'drag-node',
+            default: ['drag-canvas', 'drag-node',
               'activate-relations',
             ]
           },
@@ -206,20 +218,31 @@
            this.hiddenContextmenu('nodeBoxCard');
            this.hiddenContextmenu('edgeBoxCard');
         });
-
-
         _t.graph.on('node:click', e => {
           // this.$store.commit('setNodeInfoDrawerVis',true);
           this.$store.state.nodes.forEach(cn => {
             if(cn.id === e.item.getModel().id){
-              this.form.id = cn.id;
-              this.form.x = cn.x;
-              this.form.y = cn.y;
-              this.form.size = cn.size;
-              this.form.color = cn.style.fill;
-              this.form.info = cn.info;
-              this.form.label = cn.label;
-              this.$store.commit('setNodeInfoDrawerVis',true);
+              this.nodeForm.id = cn.id;
+              this.nodeForm.x = cn.x;
+              this.nodeForm.y = cn.y;
+              this.nodeForm.size = cn.size;
+              this.nodeForm.color = cn.style.fill;
+              this.nodeForm.info = cn.info;
+              this.nodeForm.label = cn.label;
+              this.nodeForm.isVisible = true;
+              // this.$store.commit('setNodeInfoDrawerVis',true);
+            }
+          })
+        });
+        _t.graph.on('edge:click', e => {
+          this.$store.state.edges.forEach(cn => {
+            if(cn.id === e.item.getModel().id){
+              this.edgeForm.id = cn.id;
+              this.edgeForm.source = cn.source;
+              this.edgeForm.target = cn.target;
+              this.edgeForm.info = cn.info;
+              this.edgeForm.label = cn.label;
+              this.edgeForm.isVisible = true;
             }
           })
         });
@@ -244,15 +267,13 @@
 
 
       },
-      canvasEvents(liOption){
-        // console.log(liOption);
-        if(liOption === 'addNode'){
-          this.dialogForm1Visible = true;
-        }else if(liOption === 'addEdge'){
-          this.dialogForm2Visible = true;
-        }
+      addNodeForm(){
+        this.dialogForm1Visible = true;
+        this.hiddenContextmenu('canvasBoxCard');
       },
-
+      cancelNodeForm(){
+        this.dialogForm1Visible = false;
+      },
       //添加节点
       addNode(ruleForm){
         // console.log(ruleForm[0]);
@@ -285,11 +306,18 @@
         const _t = this;
         _t.graph.addItem('node',node);
         _t.graph.render();
+      },
+      addEdgeForm(){
+        this.dialogForm2Visible = true;
         this.hiddenContextmenu('canvasBoxCard');
+      },
+      cancelEdgeForm(){
+        this.dialogForm2Visible = false;
       },
       addEdge(ruleForm){
         this.dialogForm2Visible = false;
         let edge = {
+          id: ruleForm.id,
           source:  ruleForm.source,
           target:  ruleForm.target,
           label:  ruleForm.label,
@@ -299,22 +327,13 @@
         const _t = this;
         _t.graph.addItem('edge',edge);
         _t.graph.render();
-        this.hiddenContextmenu('canvasBoxCard');
       },
       //获取鼠标点击的坐标
       getCoordinate(x,y){
         this.coordinate.x = x;
         this.coordinate.y = y;
       },
-      setNode(arg){
-        if(arg[1] === 'delNode'){
-          this.delNode(arg[0]);
-        }else if(arg[1] === 'updateNode'){
-          this.updateNode(arg[0]);
-        }
-      },
       updateNode(ruleForm){
-        // console.log(typeof ruleForm.x);
         this.$store.state.nodes.forEach(cn => {
           if(ruleForm.id === cn.id){
             cn.x = ruleForm.x;
@@ -327,29 +346,47 @@
             // this.graph.updateItem(
             const item = this.graph.findById(cn.id);
             item.update(cn);
-            // console.log(cn);
-
-
           }
         })
       },
       delNode(id){
-        for(let i = 0; i < this.$store.state.nodes.length; i++){
-          if(id ===  this.$store.state.nodes[i].id){
-            this.$store.state.nodes.splice(i,1);
+        let nodes = this.$store.state.nodes;
+        for(let i = 0; i < nodes.length; i++){
+          if(id ===  nodes[i].id){
+            nodes.splice(i,1);
+            this.graph.remove(this.graph.findById(id));
+            break;
+          }
+        }
+      },
+      updateEdge(ruleForm){
+        this.$store.state.edges.forEach(cn => {
+          if(ruleForm.id === cn.id){
+            cn.label = ruleForm.label;
+            cn.info = ruleForm.info;
+            this.graph.findById(cn.id).update(cn);
+          }
+        })
+      },
+      delEdge(id){
+        let edges = this.$store.state.edges;
+        for(let i = 0; i < edges.length; i++){
+          if(id === edges[i].id){
+            edges.splice(i,1);
             this.graph.remove(this.graph.findById(id));
             break;
           }
         }
       }
-
   },
-
-
   }
 </script>
 
 <style scoped>
+  body {
+    margin: 0;
+    padding: 0;
+  }
   #mountNode {
     position: relative;
     /*width: 1200px;*/
@@ -368,5 +405,22 @@
     color: #333;
     text-align: center;
     line-height: 60px;
+  }
+
+  .tab {
+    height: 20px;
+    /*background-color: #fff;*/
+    margin-top: 38px;
+    border: 1px solid #eaeaea;
+  }
+  .tab {
+    margin: 40px 0 0 0;
+    padding: 0;
+  }
+  .tab li {
+    display: inline-block;
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
 </style>

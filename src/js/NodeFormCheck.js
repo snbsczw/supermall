@@ -40,9 +40,6 @@ let checkCoordinateY = (rule, value, callback) => {
   }
 };
 let checkSize = (rule, value, callback) => {
-  if(!value){
-    value = 30;
-  }
   let reg = /^[0-9]+$/;
   if(value !== "" && !reg.test(value)){
     return callback(new Error('只能输入数字!'))
@@ -52,10 +49,23 @@ let checkSize = (rule, value, callback) => {
   }
   callback();
 };
-
+let checkColor = (rule, value, callback) => {
+  let reg = /^#[0-9a-fA-F]{6}$/;
+  if(value.match(reg) == null){
+    reg = /^[rR][gG][Bb][(]((2[0-4][0-9]|25[0-5]|[01]?[0-9][0-9]?),){2}(2[0-4]\d|25[0-5]|[01]?\d\d?)[)]$/;
+    if(value.match(reg) == null){
+      return callback(new Error('输入颜色值不合法!'));
+    }else{
+      callback();
+    }
+  }else{
+    callback();
+  }
+};
 export {
   checkId,
   checkCoordinateX,
   checkCoordinateY,
-  checkSize
+  checkSize,
+  checkColor
 }

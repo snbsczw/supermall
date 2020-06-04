@@ -1,4 +1,5 @@
 <template>
+  <el-dialog title="添加节点" :visible.sync="isVisible">
     <el-form :model="ruleForm" :rules="rules" ref="ruleForm" status-icon>
       <el-form-item label="节点ID：" label-width="120px" prop="id">
         <el-input autofocus="autofocus" v-model="ruleForm.id" placeholder="请输入内容"  autocomplete="off"></el-input>
@@ -23,20 +24,22 @@
         <el-input v-model="ruleForm.info" placeholder="请输入节点详细信息,可选"></el-input>
       </el-form-item>
       <div  class="dialog-footer">
-        <el-button @click="dialogForm1Visible = false">取 消</el-button>
+        <el-button @click="cancel">取 消</el-button>
         <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
       </div>
     </el-form>
+  </el-dialog>
 </template>
 
 <script>
-  import {checkId,checkSize,checkCoordinateY,checkCoordinateX} from '@/js/NodeFormCheck';
+  import {checkId,checkSize,checkCoordinateY,checkCoordinateX,checkColor} from '@/js/NodeFormCheck';
   import ColorPicker from '@/components/tools/ColorPicker';
   export default {
     name: "test",
     components: {
       ColorPicker
     },
+    props: ['isVisible'],
     data() {
 
       return{
@@ -57,11 +60,15 @@
           coordinateX: { validator: checkCoordinateX, trigger: 'blur'},
           coordinateY: { validator: checkCoordinateY, trigger: 'blur'},
           size: { validator: checkSize, trigger: 'blur'},
+          color: {validator: checkColor, trigger: 'blur'},
         },
 
       }
     },
     methods: {
+      cancel(){
+        this.$emit('cancel');
+      },
       setColor(event){
         this.ruleForm.color = event;
       },

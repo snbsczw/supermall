@@ -1,5 +1,9 @@
 <template>
+  <el-dialog title="添加线段" :visible.sync="isVisible">
   <el-form :model="ruleForm" :rules="rules" ref="ruleForm" status-icon>
+    <el-form-item  label="线段ID：" label-width="120px">
+      <el-input v-model="ruleForm.source + '-' + ruleForm.target" placeholder="" :disabled="true"></el-input>
+    </el-form-item>
     <el-form-item  label="线段起始点ID：" label-width="120px" prop="source">
       <el-input autofocus="autofocus" v-model="ruleForm.source" placeholder="请输入线段起始点ID" ></el-input>
     </el-form-item>
@@ -13,10 +17,11 @@
       <el-input v-model="ruleForm.info" placeholder="请输入线段详细信息,可空"></el-input>
     </el-form-item>
     <div  class="dialog-footer">
-      <el-button @click="dialogForm1Visible = false">取 消</el-button>
+      <el-button @click="cancel">取 消</el-button>
       <el-button type="primary" @click="submitForm('ruleForm')">确 定</el-button>
     </div>
   </el-form>
+  </el-dialog>
 </template>
 
 <script>
@@ -24,6 +29,7 @@
 
   export default {
     name: "AddEdgeForm",
+    props: ['isVisible'],
     data(){
       return{
         ruleForm: {
@@ -44,6 +50,9 @@
       }
     },
     methods: {
+      cancel(){
+        this.$emit('cancel');
+      },
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           // console.log('valid');

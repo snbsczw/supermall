@@ -1,7 +1,7 @@
 <template>
   <ul  id="canvasBoxCard" class="canvas-card" :style="'visibility:'+isVisibility">
-    <li @click="handEvent('addNode')">添加节点</li>
-    <li @click="handEvent('addEdge')">添加线段</li>
+    <li @click="addNode">添加节点</li>
+    <li @click="addEdge">添加线段</li>
     <li>关系检测</li>
     <li></li>
     <li></li>
@@ -18,10 +18,12 @@
       }
     },
     methods: {
-      handEvent(liOption){
-        this.$emit('canvas_events',liOption);
-      }
-
+      addNode(){
+        this.$emit('addnode');
+      },
+      addEdge(){
+        this.$emit('addedge');
+      },
     }
   }
 </script>

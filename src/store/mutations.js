@@ -7,7 +7,7 @@ export default {
   addEdge(state,edge){
     state.edges.push(edge);
   },
-  setNodeInfoDrawerVis(state,flag){
-    state.nodeInfoDrawerVisible = flag;
-  }
+  // setNodeInfoDrawerVis(state,flag){
+  //   state.nodeInfoDrawerVisible = flag;
+  // }
 }

@@ -29,12 +29,13 @@ const state = {
       info: '',//String,可选,节点详细信息
     }],
   edges: [ {
+    id: 'node1-node2',
     source: 'node1', // String，必须，起始点 id
     target: 'node2', // String，必须，目标点 id
     label: '',//String,可选,边标签
     info: '',//String,可选,线段详细信息
   },],
-  nodeInfoDrawerVisible: false,
+  // nodeInfoDrawerVisible: false,
 };
 //2.创建对象
 const store = new Vuex.Store({
